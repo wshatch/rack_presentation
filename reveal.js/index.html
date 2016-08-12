@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/hatchdev.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+                  <h2>Just about everything you need to know about Rack </h2>
+                </section>
+                <section>
+                  <h3> Who Am I? </h3>
+                    <ul>
+                      <li> William Hatch </li>
+                      <li> Software Engineer at Rentpath </li>
+                      <li> Been Programming Professionally for Seven Years </li>
+                      <li> Works with an Enterprise Company, Little Rails and Read Heavy </li>
+                    </ul>
+                </section>
+                <section>
+                  <h3> Http Request </h3>
+                  <pre> <code class='ruby'> """
+GET / HTTP/1.1\n
+Host: google.com\n
+Connection: close\n
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36\n
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8 \n
+Cookie:_ga=GA1.1.1422879885.1460058344; OGPC=103910400-5:5062006-23:5062014-17:5062028-34:681502720-5\n
+Accept-Encoding:gzip, deflate, sdch, br \n
+Accept-Charset: ISO-8859-1,UTF-8;q=0.7,*;q=0.7\n
+Upgrade-Insecure-Requests: 1\n
+X-Client-Data: CJW2yQEIprbJAQjBtskBCPScygE=
+X-DevTools-Emulate-Network-Conditions-Client-Id: c3319112-fc6e-493b-98e1-c2cbfa5b633e
+""" </code></pre>
+                </section>
+                <section>
+                  <h3> Http Response </h3>
+                  <pre> <code class='ruby'> """
+alt-svc:quic=":443"; ma=2592000; v="36,35,34,33,32,31,30,29,28,27,26,25"\n
+alternate-protocol:443:quic\n
+cache-control:private, max-age=0\n
+content-encoding:gzip\n
+content-type:text/html; charset=UTF-8\n
+content-length: 9001\n
+connection: Closed\n
+date:Sun, 31 Jul 2016 19:18:22 GMT\n
+expires:-1\n
+server:gws\n
+set-cookie:DV=; expires=Mon, 01-Jan-1990 00:00:00 GMT; path=/; domain=google.com\n
+status:200\n
+strict-transport-security:max-age=86400\n
+x-frame-options:SAMEORIGIN\n
+x-xss-protection:1; mode=block\n
+
+#A bunch of binary, zipped data that's html when unzipped
+""" </code></pre>
+
+                </section>
+                <section> 
+                  <h3> Rack an interface between your web application and web server </h3>
+                  <ul>
+                    <li> The webserver gives us a parsed request </li>
+                    <li> In return, we provide the webserver with a format to build a response </li>
+                  </ul>
+                </section>
+                <section>
+                  <h2>What is a Rack Application</h2>
+                  <ul>
+                  <li class='fragment'>Any thing that responds to call and is passed an environment object</li>
+                  <li class='fragment'>Class, lambda, proc, etc</li>
+                  <li class='fragment'>Returns an array of a status, headers, and body</li>
+                  <li class='fragment'>usually ran in <code>config.ru</code></li>
+                  </ul>
+                  <pre class='fragment'><code class='ruby'>  require 'rack'
+run -> (env) { [ 200, {'Content-blah': 12}, ["Hello World!"] ] } </code></pre>
+                </section>
+                <section>
+                  <h2>Rack ENV Hash</h2>
+                  <table>
+                    <thead>
+                      <tr>
+                        <td> key </td>
+                        <td> description </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td> HTTP_* </td>
+                        <td> Request headers such as ACCEPT, LANGUAGE, USER_AGENT, etc </td> 
+                      </tr>
+                      <tr>
+                        <td> rack.hijack </td>
+                        <td> Socket object used by the webserver. Can be used for websockets </td>
+                      </tr>
+                      <tr>
+                        <td> rack.errors </td>
+                        <td> Allows us to override error reporting with an IO stream </td>
+                      </tr>
+                      <tr>
+                        <td> rack.input </td>
+                        <td> IO object(usually either StringIO or NullIO) usually used for file uploads</td>
+                      </tr>
+                      <tr>
+                        <td> QUERY_STRING </td>
+                        <td> What it says on the tin </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </section>
+                <section>
+                  <h2> Rack middleware </h2>
+                  <ul>
+                    <li> Very similar to a Rack Application </li>
+                    <li> Has to be a class that has a constructor </li>
+                    <li> app and opts are passed to constructor </li>
+                  </ul>
+                </section>
+                <section>
+                  <h2> Default Rails Dev Middleware </h2>
+
+                  <ul style="width: 45%; float:left">
+                    <li>Rack::Head</li>
+                    <li>Rack::ConditionalGet</li>
+                    <li>Rack::ETag</li>
+                    <li>Rack::Sendfile</li>
+                    <li>Rails::Rack::Logger</li>
+                    <li>ActionDispatch::Static</li>
+                    <li>ActionDispatch::Executor</li>
+                    <li>ActionDispatch::RequestId</li>
+                    <li>ActionDispatch::RemoteIp</li>
+                    <li>ActionDispatch::Reloader</li>
+                  </ul>
+
+                  <ul style="width: 45%; float: left">
+                    <li>ActionDispatch::Callbacks</li>
+                    <li>ActionDispatch::Cookies</li>
+                    <li>ActionDispatch::Session::CookieStore</li>
+                    <li>ActionDispatch::Flash</li>
+                    <li>ActiveSupport::Cache::Strategy::LocalCache::Middleware</li>
+                    <li>Sprockets::Rails::QuietAssets</li>
+                    <li>ActionDispatch::ShowExceptions</li>
+                    <li>WebConsole::Middleware</li>
+                    <li>ActiveRecord::Migration::CheckPending</li>
+                  </ul>
+                </section>
+                <section>
+                  <h2> Setting up Global Variables </h2>
+                  <ul> 
+                    <li> ActionDispatch::Flash </li>
+                    <li> Rack::Cookies </li>
+                    <li> Rack::Session </li>
+                  </ul>
+                </section>
+                <section>
+                  <h2> Render new content </h2>
+                  <ul>
+                    <li> Rack::Performance and firegraph </li>
+                    <li> Etags! </li>
+                  </ul>
+                </section>
+                <section> 
+                  <h2> Short Circut </h2>
+                  <ul>
+                    <li> ActiveRecord::Migration::CheckPending </li>
+                    <li> Authentication? </li>
+                  </ul>
+                </section>
+                <section>
+                  <h2> Rails weirdness </h2>
+                  <ul>
+                    <li> Use `config.middleware.use` in `config/application.rb` to add middleware </li>
+                    <li> Most middleware is added through a railtie </li>
+                    <li> Rails creates the response with `ActionDispatch::Request` </li>
+                  </ul>
+                </section>
+                <section>
+                  <h2> Other Rack Base Classes </h2>
+                  <ul>
+                    <li> Rack Builder </li>
+                    <li> Rack::UrlMap </li>
+                    <li> Rack::Cascade </li>
+                  </ul>
+                </section>
+                <section>
+                  <h2> Final Notes </h2>
+                  <ul>
+                    <li> Find middleware before you write it </li>
+                    <li> Reverse Proxies are your friends </li>
+                    <li> It can be hard to decide if code should be in route/controller, middleware, or other service </li>
+                  </ul>
+
+                </section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				history: true,
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
